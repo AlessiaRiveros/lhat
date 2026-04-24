@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import make_scorer, roc_auc_score
 from sklearn.metrics import RocCurveDisplay
@@ -113,6 +113,17 @@ class MachineLearning:
         grid_search.fit(self.X_train, self.y_train)
         print ('best model parameters: \n', grid_search.best_params_)
 
+        best_params = grid_search.best_params_
+        best_score = grid_search.best_score_
+
+        # save best parameters to a text file
+        with open(os.path.join(self.pathToSavedModel, self.model_name + '_grid_search_best_params.txt'), 'w') as f:
+            f.write("Best Parameters:\n")
+            for key, value in best_params.items():
+                f.write(f"{key}: {value}\n")
+            f.write(f"\nBest CV Score: {best_score}\n")
+
+
         #Evaluate the best model
         best_model = grid_search.best_estimator_
 
@@ -153,10 +164,13 @@ class MachineLearning:
         predictions = model.predict(X) #fit to scaled object
         accuracy = accuracy_score(y, predictions)
         auc = roc_auc_score(y, predictions)
+        f1 = f1_score(y, predictions)
+        
         confusion = pd.DataFrame(confusion_matrix(y, predictions))
         print('Model Performance')
         print('Accuracy Score = {}%'.format(accuracy * 100))
         print('AUC = {}%'.format(auc * 100))
+        print('F1 Score = {}%'.format(f1 * 100))
         print('Confusion matrix = \n', confusion)
 
         # plot ROC curve from probabilities 
@@ -215,7 +229,7 @@ class MachineLearning:
                             'gamma':['auto','scale'],
                             'degree': [2, 3, 4],
                             'C': [2, 1, 0.5],
-                             'probability': [True]}
+                            'probability': [True]}
 
         # define the baseline model
         baselineModel = svm.SVC(random_state=101)
